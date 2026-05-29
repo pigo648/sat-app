@@ -53,7 +53,7 @@ jobs:
         if: inputs.buildType == 'release'
         run: |
           cat > android/keystore.properties << 'EOF'
-          storeFile=../sat-release.jks
+          storeFile=../../sat-release.jks
           storePassword=android
           keyAlias=sat
           keyPassword=android
