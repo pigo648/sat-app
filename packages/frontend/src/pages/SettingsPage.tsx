@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import { getPlatformInfo, getPlatformDescription, getPWAInstallInstructions } from '../utils/platform';
 import { getWearableName, getWearableSetupGuide } from '../services/wearableService';
 import TimeRangePicker from '../components/task/TimeRangePicker';
+import { downloadBackupFile, uploadBackupFile, getSyncConfig, saveSyncConfig, uploadToWebDAV, downloadFromWebDAV, importAllData } from '../services/cloudSyncService';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -111,6 +112,45 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Cloud Sync */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">云端同步</h3>
+        <p className="text-xs text-gray-400 mb-3">
+          支持 WebDAV 协议（坚果云、Nextcloud 等），实现多设备数据同步
+        </p>
+        <div className="space-y-2">
+          <Button variant="secondary" className="w-full" onClick={async () => {
+            try {
+              await downloadBackupFile();
+              addToast({ type: 'success', message: '备份文件已下载' });
+            } catch { addToast({ type: 'error', message: '导出失败' }); }
+          }}>
+            下载备份文件
+          </Button>
+          <Button variant="secondary" className="w-full" onClick={async () => {
+            try {
+              const result = await uploadBackupFile();
+              addToast({ type: 'success', message: `恢复完成：${result.tasks} 个任务` });
+            } catch (e) { addToast({ type: 'error', message: '导入失败：文件格式不正确' }); }
+          }}>
+            从备份恢复
+          </Button>
+          <Button variant="ghost" className="w-full text-sm" onClick={() => {
+            const config = getSyncConfig();
+            const url = prompt('WebDAV 地址（如 https://dav.jianguoyun.com/dav/SAT）：', config.webdavUrl || '');
+            if (!url) return;
+            const username = prompt('用户名：', config.webdavUsername || '');
+            if (!username) return;
+            const password = prompt('密码（App 专用密码）：', '');
+            if (!password) return;
+            saveSyncConfig({ type: 'webdav', webdavUrl: url, webdavUsername: username, webdavPassword: password, autoSyncInterval: 0 });
+            addToast({ type: 'success', message: 'WebDAV 已配置' });
+          }}>
+            配置 WebDAV 同步
+          </Button>
+        </div>
+      </div>
+
       {/* Data */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">数据管理</h3>
@@ -132,6 +172,14 @@ export default function SettingsPage() {
           <p>智能时间调配助手</p>
           <p className="text-xs text-gray-400">AI 驱动的时间管理，让每一天都高效充实</p>
         </div>
+      </div>
+
+      {/* Privacy */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">隐私与法律</h3>
+        <Button variant="ghost" className="w-full justify-start text-sm text-gray-600" onClick={() => navigate('/privacy')}>
+          查看隐私政策
+        </Button>
       </div>
 
       {/* Install PWA Button */}

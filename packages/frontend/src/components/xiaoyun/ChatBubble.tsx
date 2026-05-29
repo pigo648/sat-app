@@ -10,10 +10,18 @@ export default function ChatBubble({ message }: Props) {
   return (
     <div className={`flex gap-2 ${isUser ? 'flex-row-reverse' : ''} chat-message-in`}>
       {/* Avatar */}
-      <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
-        isUser ? 'bg-primary-600 text-white' : 'bg-primary-100 text-primary-600'
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${
+        isUser
+          ? 'bg-primary-600 text-white'
+          : 'bg-gradient-to-br from-primary-300 to-primary-500 text-white'
       }`}>
-        <span className="text-xs font-bold">{isUser ? '我' : '云'}</span>
+        {isUser ? (
+          <span className="text-xs font-bold">我</span>
+        ) : (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+          </svg>
+        )}
       </div>
 
       {/* Bubble */}
@@ -22,13 +30,16 @@ export default function ChatBubble({ message }: Props) {
           ? 'bg-primary-600 text-white rounded-tr-sm'
           : 'bg-white text-gray-700 rounded-tl-sm shadow-sm'
       }`}>
-        <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.text}</p>
         {message.plans && message.plans.length > 0 && (
-          <div className="mt-2 text-xs opacity-70">
-            +{message.plans.length} 个方案
+          <div className="mt-2 inline-flex items-center gap-1 text-[11px] bg-gray-100 rounded-full px-2 py-0.5 text-gray-500">
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            {message.plans.length} 个时间方案
           </div>
         )}
-        <span className={`text-[10px] mt-1 block ${isUser ? 'text-white/60' : 'text-gray-400'}`}>
+        <span className={`text-[10px] mt-1.5 block ${isUser ? 'text-white/60' : 'text-gray-400'}`}>
           {formatTime(message.timestamp)}
         </span>
       </div>

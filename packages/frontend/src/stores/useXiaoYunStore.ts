@@ -3,6 +3,7 @@ import type { ChatMessage, Plan } from '../types/task';
 import { generateId } from '../utils/time';
 import { useTaskStore } from './useTaskStore';
 import { useAppStore } from './useAppStore';
+import { generatePlan, generateAlternatives } from '../services/xiaoyunService';
 
 interface PlanContext {
   tasks: string;
@@ -41,29 +42,22 @@ export const useXiaoYunStore = create<XiaoYunState>((set, get) => ({
   closeChat: () => set({ isOpen: false }),
 
   sendMessage: async (text, context) => {
-    const { messages } = get();
+    const { messages, conversationId } = get();
     const userMsg: ChatMessage = {
       id: generateId(),
       role: 'user',
       text,
       timestamp: Date.now(),
     };
-    set({ messages: [...messages, userMsg], isLoading: true, error: null });
+    set({ messages: [...messages, userMsg], isLoading: true, error: null, plans: [] });
 
     try {
-      const res = await fetch('/api/xiaoyun/plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tasks: text, timeRange: context.timeRange, constraints: context.constraints }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || '请求失败');
+      const data = await generatePlan(text, context.timeRange, context.constraints);
 
       const aiMsg: ChatMessage = {
         id: generateId(),
         role: 'xiao_yun',
-        text: data.plans?.[0]?.summary ?? '这是为您生成的计划方案：',
+        text: data.plans?.[0]?.summary ?? '这是我根据你的需求制定的方案，来看看吧～',
         timestamp: Date.now(),
         plans: data.plans,
       };
@@ -71,49 +65,52 @@ export const useXiaoYunStore = create<XiaoYunState>((set, get) => ({
       set({
         messages: [...get().messages, aiMsg],
         plans: data.plans ?? [],
-        conversationId: data.conversationId ?? null,
+        conversationId: data.conversationId ?? conversationId,
         isLoading: false,
       });
     } catch (e) {
-      set({ error: (e as Error).message, isLoading: false });
-      useAppStore.getState().addToast({ type: 'error', message: '小云连接失败，请检查网络' });
+      const errMsg = (e as Error).message;
+      set({ error: errMsg, isLoading: false, plans: [] });
+      useAppStore.getState().addToast({ type: 'error', message: '小云暂时无法连接，请稍后重试' });
     }
   },
 
   requestAlternatives: async (feedback) => {
-    const { conversationId, plans } = get();
-    set({ isLoading: true, error: null });
+    const { messages, conversationId } = get();
+
+    const userMsg: ChatMessage = {
+      id: generateId(),
+      role: 'user',
+      text: feedback,
+      timestamp: Date.now(),
+    };
+
+    set({ messages: [...messages, userMsg], isLoading: true, error: null, plans: [] });
 
     try {
-      const res = await fetch('/api/xiaoyun/replan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conversationId,
-          feedback,
-          previousPlanId: plans[0]?.id,
-        }),
-      });
-      const data = await res.json();
+      const data = await generateAlternatives(feedback, conversationId ?? undefined);
 
-      if (!res.ok) throw new Error(data.error || '请求失败');
+      if (!data.plans || data.plans.length === 0) {
+        throw new Error('未能生成替代方案，请尝试重新描述你的需求');
+      }
 
       const aiMsg: ChatMessage = {
         id: generateId(),
         role: 'xiao_yun',
-        text: '好的，我为您重新规划了以下替代方案：',
+        text: '收到你的反馈啦！我重新整理了以下方案，每个方案的侧重点都不同，看看有没有更合你心意的～',
         timestamp: Date.now(),
         plans: data.plans,
       };
 
       set({
         messages: [...get().messages, aiMsg],
-        plans: data.plans ?? [],
+        plans: data.plans,
         isLoading: false,
       });
     } catch (e) {
-      set({ error: (e as Error).message, isLoading: false });
-      useAppStore.getState().addToast({ type: 'error', message: '获取替代方案失败' });
+      const errMsg = (e as Error).message;
+      set({ error: errMsg, isLoading: false, plans: [] });
+      useAppStore.getState().addToast({ type: 'error', message: '获取替代方案失败，请稍后重试' });
     }
   },
 
@@ -124,16 +121,29 @@ export const useXiaoYunStore = create<XiaoYunState>((set, get) => ({
     const store = useAppStore.getState();
     const todayPlan = taskStore.dailyPlan;
 
-    if (!todayPlan?.id) return;
+    if (!todayPlan?.id) {
+      // Create a daily plan first if none exists
+      await taskStore.createDailyPlan(
+        { date: new Date().toISOString().split('T')[0], timeRangeStart: '09:00', timeRangeEnd: '21:00' },
+        [],
+      );
+      await taskStore.loadTodayPlan();
+      const newPlan = taskStore.dailyPlan;
+      if (!newPlan?.id) {
+        store.addToast({ type: 'error', message: '创建计划失败，请先手动创建今日计划' });
+        return;
+      }
+    }
+
+    const planId = taskStore.dailyPlan?.id;
+    if (!planId) return;
 
     const now = Date.now();
-    // Delete existing tasks for today
-    await import('../db/database').then((m) =>
-      m.db.tasks.where('dailyPlanId').equals(todayPlan.id!).delete()
-    );
+    const { db } = await import('../db/database');
+    await db.tasks.where('dailyPlanId').equals(planId).delete();
 
     const tasks = plan.tasks.map((pt, i) => ({
-      dailyPlanId: todayPlan.id!,
+      dailyPlanId: planId,
       name: pt.name,
       startTime: pt.startTime,
       endTime: pt.endTime,
@@ -142,14 +152,15 @@ export const useXiaoYunStore = create<XiaoYunState>((set, get) => ({
       phase: pt.phase,
       status: 'pending' as const,
       sortOrder: i,
+      notes: '',
       createdAt: now,
       updatedAt: now,
     }));
 
-    await import('../db/database').then((m) => m.db.tasks.bulkAdd(tasks));
+    await db.tasks.bulkAdd(tasks);
     await taskStore.loadTodayPlan();
     set({ isOpen: false, selectedPlan: plan });
-    store.addToast({ type: 'success', message: '小云的时间计划已应用！' });
+    store.addToast({ type: 'success', message: '小云已经把计划安排好啦！去首页看看吧～' });
   },
 
   clearConversation: () => {

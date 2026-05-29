@@ -5,12 +5,16 @@ import type { DailyStats, AllTimeStats } from '../types/task';
 import { getWeekDates, getTodayDate } from '../utils/time';
 import DonutChart from '../components/stats/DonutChart';
 import BarChart from '../components/stats/BarChart';
+import Button from '../components/ui/Button';
+import { generateWeeklyReport } from '../services/xiaoyunService';
 
 export default function StatsPage() {
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
   const [allTimeStats, setAllTimeStats] = useState<AllTimeStats | null>(null);
   const [weekStats, setWeekStats] = useState<DailyStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [weeklyReport, setWeeklyReport] = useState<string | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   useEffect(() => {
     loadStats();
@@ -151,6 +155,49 @@ export default function StatsPage() {
           }))} />
         </div>
       )}
+
+      {/* AI Weekly Report */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-700">小云周报</h3>
+          {allTimeStats && !weeklyReport && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={async () => {
+                setIsGeneratingReport(true);
+                try {
+                  const { report } = await generateWeeklyReport(allTimeStats);
+                  setWeeklyReport(report);
+                } catch {
+                  setWeeklyReport('小云暂时无法生成周报，请稍后再试～');
+                }
+                setIsGeneratingReport(false);
+              }}
+              loading={isGeneratingReport}
+            >
+              生成周报
+            </Button>
+          )}
+        </div>
+
+        {weeklyReport ? (
+          <div className="bg-gradient-to-br from-primary-50 to-blue-50 rounded-xl p-4 animate-fade-in">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary-300 to-primary-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+                </svg>
+              </div>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{weeklyReport}</p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400 text-center py-4">
+            点击生成按钮，让小云为你总结这周的表现吧～
+          </p>
+        )}
+      </div>
     </PageContainer>
   );
 }

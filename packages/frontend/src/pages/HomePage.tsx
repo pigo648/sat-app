@@ -7,6 +7,9 @@ import { STATUS_LABELS, PRIORITY_COLORS, PHASE_LABELS } from '../utils/constants
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import QuoteCard from '../components/quote/QuoteCard';
+import XiaoYunEntrance from '../components/xiaoyun/XiaoYunEntrance';
+import XiaoYunChat from '../components/xiaoyun/ChatWindow';
+import ProgressWidget from '../components/widget/ProgressWidget';
 import type { Task, Quote } from '../types/task';
 import { db } from '../db/database';
 
@@ -17,6 +20,7 @@ export default function HomePage() {
   const [showQuote, setShowQuote] = useState(false);
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [lastCompletedId, setLastCompletedId] = useState<number | null>(null);
+  const [showXiaoYun, setShowXiaoYun] = useState(false);
 
   useEffect(() => {
     loadTodayPlan();
@@ -125,6 +129,11 @@ export default function HomePage() {
         )}
       </div>
 
+      {/* Progress Widget */}
+      <div className="mb-4">
+        <ProgressWidget />
+      </div>
+
       {/* Task List */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -151,6 +160,25 @@ export default function HomePage() {
       {/* Quote */}
       {showQuote && currentQuote && (
         <QuoteCard quote={currentQuote} />
+      )}
+
+      {/* XiaoYun Entrance */}
+      <XiaoYunEntrance
+        onClick={() => setShowXiaoYun(true)}
+        hasPlan={!!dailyPlan}
+        completedCount={completedCount}
+        totalCount={totalCount}
+      />
+
+      {/* XiaoYun Chat */}
+      {showXiaoYun && (
+        <XiaoYunChat
+          timeRange={{
+            start: dailyPlan?.timeRangeStart || '09:00',
+            end: dailyPlan?.timeRangeEnd || '21:00',
+          }}
+          onClose={() => setShowXiaoYun(false)}
+        />
       )}
     </PageContainer>
   );

@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageContainer from '../components/layout/PageContainer';
+import { generateMotivation } from '../services/xiaoyunService';
 import Button from '../components/ui/Button';
 import ShareSheet from '../components/photo/ShareSheet';
 import { useAppStore } from '../stores/useAppStore';
@@ -54,34 +55,19 @@ export default function PhotoCheckinPage() {
     stopCamera();
   };
 
-  const generateMotivation = async () => {
+  const generateMotivationText = async () => {
     setIsGenerating(true);
     try {
       const tasks = await db.tasks.where('status').equals('completed').toArray();
       const taskNames = tasks.map((t) => t.name).join('、');
 
-      const res = await fetch('/api/xiaoyun/motivation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          context: {
-            completedTasks: taskNames || '各项任务',
-            date: getTodayDate(),
-            notes: '今天又是充实的一天',
-          },
-        }),
+      const data = await generateMotivation({
+        completedTasks: taskNames || '各项任务',
+        date: getTodayDate(),
+        notes: '今天又是充实的一天',
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        setGeneratedText(data.text);
-        setOverlayText(data.text);
-      } else {
-        // Fallback
-        const text = '每一天的努力都在为未来铺路，坚持就是胜利！';
-        setGeneratedText(text);
-        setOverlayText(text);
-      }
+      setGeneratedText(data.text);
+      setOverlayText(data.text);
     } catch {
       const text = '今日事，今日毕。每一天的坚持都是通往成功的阶梯。';
       setGeneratedText(text);
@@ -176,7 +162,7 @@ export default function PhotoCheckinPage() {
           {!generatedText ? (
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-300 mb-4">让小云为你生成励志文案吧！</p>
-              <Button variant="primary" size="lg" loading={isGenerating} onClick={generateMotivation}>
+              <Button variant="primary" size="lg" loading={isGenerating} onClick={generateMotivationText}>
                 🤖 生成励志文案
               </Button>
             </div>

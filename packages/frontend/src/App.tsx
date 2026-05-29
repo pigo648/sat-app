@@ -13,6 +13,7 @@ const HistoryPage = lazy(() => import('./pages/HistoryPage'));
 const HistoryDetailPage = lazy(() => import('./pages/HistoryDetailPage'));
 const PhotoCheckinPage = lazy(() => import('./pages/PhotoCheckinPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 
 function PageLoader() {
   return <LoadingSpinner size="lg" className="py-20" />;
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/history/:date" element={<HistoryDetailPage />} />
           <Route path="/photo" element={<PhotoCheckinPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         </Route>
       </Routes>
     </Suspense>

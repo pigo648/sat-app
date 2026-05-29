@@ -100,6 +100,8 @@ export async function sendReminder(type: ReminderType, customBody?: string): Pro
   const config = REMINDER_CONFIGS[type];
   if (!config) return;
 
+  const body = customBody || config.body;
+
   // Send vibration (mirrors to wearable devices)
   if (isVibrationSupported()) {
     try {
@@ -109,16 +111,24 @@ export async function sendReminder(type: ReminderType, customBody?: string): Pro
     }
   }
 
+  // Try Capacitor native notification first
+  try {
+    const { scheduleLocalNotification } = await import('./capacitorService');
+    await scheduleLocalNotification(config.title, body, new Date());
+    return; // Native notification sent, skip web notification
+  } catch {
+    // Fall back to Web Notification API
+  }
+
   // Send notification (automatically appears on paired smartwatches)
   if (permissionGranted || Notification.permission === 'granted') {
     permissionGranted = true;
     try {
       const notif = new Notification(config.title, {
-        body: customBody || config.body,
+        body,
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-72x72.png',
         tag: config.tag,
-        // vibrate is a valid Notification option per spec, but TS types lag
         ...({ vibrate: config.vibratePattern } as object),
         requireInteraction: config.requireInteraction ?? false,
         silent: false,

@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTimerStore } from '../stores/useTimerStore';
 import { useTaskStore } from '../stores/useTaskStore';
@@ -6,10 +6,13 @@ import CountdownCircle from '../components/timer/CountdownCircle';
 import TimerControls from '../components/timer/TimerControls';
 import BreakReminder from '../components/timer/BreakReminder';
 import { formatSeconds, getDurationMinutes } from '../utils/time';
+import { startAmbientSound, stopAmbientSound, AMBIENT_SOUNDS } from '../services/ambientSound';
+import type { SoundType } from '../services/ambientSound';
 
 export default function FocusTimerPage() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
+  const [ambientSound, setAmbientSound] = useState<SoundType>('none');
   const { tasks, startTask: startTaskAction } = useTaskStore();
   const {
     activeTaskId, isRunning, isPaused, remainingSeconds, totalDurationSeconds,
@@ -45,7 +48,22 @@ export default function FocusTimerPage() {
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [isRunning]);
 
+  const handleSoundChange = (type: SoundType) => {
+    setAmbientSound(type);
+    if (type === 'none') {
+      stopAmbientSound();
+    } else {
+      startAmbientSound(type);
+    }
+  };
+
+  // Cleanup sound on unmount
+  useEffect(() => {
+    return () => { stopAmbientSound(); };
+  }, []);
+
   const handleComplete = useCallback(() => {
+    stopAmbientSound();
     useTimerStore.getState().completeTimer();
     navigate('/');
   }, [navigate]);
@@ -106,6 +124,27 @@ export default function FocusTimerPage() {
         {/* Status */}
         <div className="mt-4 text-sm text-white/50">
           {isPaused ? '已暂停' : isRunning ? '专注中...' : '准备开始'}
+        </div>
+
+        {/* Ambient Sound Selector */}
+        <div className="mt-6 w-full max-w-xs">
+          <p className="text-xs text-white/40 mb-2 text-center">环境音</p>
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {AMBIENT_SOUNDS.map((s) => (
+              <button
+                key={s.type}
+                className={`px-2.5 py-1.5 rounded-full text-xs transition-all ${
+                  ambientSound === s.type
+                    ? 'bg-white/20 text-white'
+                    : 'text-white/40 hover:text-white/70 hover:bg-white/10'
+                }`}
+                onClick={() => handleSoundChange(s.type)}
+                title={s.label}
+              >
+                {s.emoji}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Progress Bar */}

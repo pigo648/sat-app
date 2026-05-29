@@ -10,6 +10,7 @@ import { getPhaseFromTime, getDurationMinutes } from '../utils/time';
 import { MAX_TASK_DURATION_MINUTES } from '../utils/constants';
 import type { Task, Priority } from '../types/task';
 import XiaoYunChat from '../components/xiaoyun/ChatWindow';
+import XiaoYunAvatar from '../components/xiaoyun/XiaoYunAvatar';
 
 export default function TaskSetupPage() {
   const navigate = useNavigate();
@@ -158,15 +159,14 @@ export default function TaskSetupPage() {
       </Button>
 
       {/* Xiao Yun FAB */}
-      <button
-        className="fixed bottom-20 right-4 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-700 active:bg-primary-800 transition-all z-30"
-        onClick={() => setShowXiaoYun(true)}
-        title="小云助手"
-      >
-        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
-      </button>
+      <div className="fixed bottom-24 right-4 z-30">
+        <XiaoYunAvatar
+          state="idle"
+          size={56}
+          onClick={() => setShowXiaoYun(true)}
+          className="shadow-lg rounded-full"
+        />
+      </div>
 
       {/* Task Form Modal */}
       {showTaskForm && (

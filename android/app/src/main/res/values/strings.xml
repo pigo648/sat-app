@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SAT - 智能时间调配</string>
+    <string name="title_activity_main">SAT - 智能时间调配</string>
+    <string name="package_name">com.sat.timemanager</string>
+    <string name="custom_url_scheme">com.sat.timemanager</string>
+</resources>
