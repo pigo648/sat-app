@@ -1,0 +1,53 @@
+{
+  "appName": "SAT - 智能时间调配",
+  "appNameEn": "SAT - Smart Time Manager",
+  "shortName": "SAT",
+  "packageName": "com.sat.timemanager",
+  "version": "1.0.0",
+  "versionCode": 1,
+  "category": "效率工具",
+  "categoryEn": "Productivity",
+  "subCategory": "时间管理",
+  "minSdkVersion": 24,
+  "targetSdkVersion": 36,
+  "price": "免费",
+  "developerName": "SAT Developer",
+  "developerEmail": "support@sat-app.example.com",
+  "privacyPolicyUrl": "https://sat-app.example.com/privacy",
+  "websiteUrl": "https://sat-app.example.com",
+  "themeColor": "#1E40AF",
+  "shortDescription": "AI驱动的智能时间管理助手，帮你高效规划每一天",
+  "shortDescriptionEn": "AI-powered smart time management assistant for daily productivity",
+  "fullDescription": "SAT（智能时间调配）是一款AI驱动的个人时间管理应用，专为希望提升工作效率和生活品质的用户设计。\n\n【核心功能】\n\n📋 智能任务规划\n- 将一天划分为多个时段，为每个时段智能分配任务\n- 支持任务优先级设置（紧急重要/重要不紧急/紧急不重要/不重要不紧急）\n- 灵活的任务模板系统，快速创建日常计划\n\n⏱️ 专注计时器\n- 番茄钟式专注计时，帮助你在规定时间内高效完成任务\n- 支持自定义工作时长和休息时长\n- 白噪音背景音（雨声、海浪、森林等），营造专注氛围\n\n📊 数据统计\n- 每日/每周/全时段完成率统计\n- 可视化图表展示时间分配\n- 自动生成周报\n\n🤖 AI助手小云\n- 智能对话辅助任务管理\n- 个性化建议和鼓励\n- 任务完成后的激励语录\n\n📸 拍照打卡\n- 支持完成任务的拍照打卡\n- 记录每日计划和成果\n\n📱 离线使用\n- 所有数据本地存储，保护隐私\n- 无需网络连接即可使用全部功能\n\nSAT 帮助你告别拖延，科学管理时间，让每一天都过得充实高效！",
+  "fullDescriptionEn": "SAT (Smart Time Allocation) is an AI-powered personal time management app designed for users who want to boost productivity and improve quality of life.\n\n【Core Features】\n\n📋 Smart Task Planning\n- Divide your day into multiple phases with intelligent task allocation\n- Priority management (Urgent & Important / Important / Urgent / Neither)\n- Flexible task template system for quick daily planning\n\n⏱️ Focus Timer\n- Pomodoro-style focus timer for efficient task completion\n- Customizable work and break durations\n- Ambient sound backgrounds (rain, ocean, forest, etc.)\n\n📊 Analytics & Statistics\n- Daily/Weekly/All-time completion rate tracking\n- Visual charts for time allocation analysis\n- Auto-generated weekly reports\n\n🤖 AI Assistant \"XiaoYun\"\n- Intelligent conversation for task management\n- Personalized suggestions and encouragement\n- Motivational quotes after task completion\n\n📸 Photo Check-in\n- Photo check-in for task completion\n- Daily plan and achievement recording\n\n📱 Offline Support\n- All data stored locally for privacy\n- Full functionality without internet connection\n\nSAT helps you overcome procrastination, manage time scientifically, and make every day productive!",
+  "keywords": "时间管理,效率,番茄钟,专注,任务管理,计时器,AI助手,打卡,习惯养成,生产力",
+  "keywordsEn": "time management,productivity,pomodoro,focus,task manager,timer,AI assistant,check-in,habit tracker",
+  "screenshots": {
+    "phone": {
+      "required": ["首页-今日计划", "专注计时", "数据统计", "任务设置", "AI助手"],
+      "dimensions": "1080x1920 (竖屏)",
+      "format": "PNG/JPG, max 8MB each"
+    },
+    "tablet": {
+      "required": false,
+      "dimensions": "2048x2732"
+    }
+  },
+  "appIcon": {
+    "size": "512x512",
+    "format": "PNG",
+    "path": "packages/frontend/dist/icons/icon-512x512.png"
+  },
+  "featureGraphic": {
+    "dimensions": "1024x500",
+    "format": "PNG",
+    "description": "用于Google Play的应用横幅图"
+  },
+  "privacyPolicy": {
+    "summary": "SAT尊重并保护用户隐私。本应用所有数据均存储在用户设备本地，不会上传到任何服务器。我们不会收集、存储或分享任何个人信息。",
+    "dataCollection": [],
+    "thirdPartyServices": ["无"],
+    "userRights": "用户拥有对本地存储数据的完全控制权，可随时删除应用清除所有数据",
+    "contact": "support@sat-app.example.com"
+  }
+}

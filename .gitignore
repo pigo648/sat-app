@@ -3,3 +3,18 @@ dist/
 .env
 *.log
 .DS_Store
+# Android
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/keystore.properties
+*.jks
+*.keystore
+# Keystore directory (keep local keystore safe)
+keystore/
+# Build output
+output/
+# IDE
+.idea/
+*.iml

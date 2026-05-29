@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build SAT APK
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       buildType:
-        description: 'Build type'
+        description: '构建类型'
         required: true
         default: 'release'
         type: choice
@@ -32,6 +32,8 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36 build-tools;36.1.0 platform-tools'
 
       - name: Install dependencies
         run: npm ci
@@ -42,28 +44,53 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Generate keystore (for Release)
+        if: inputs.buildType == 'release'
+        run: |
+          keytool -genkey -v -keystore sat-release.jks -alias sat -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=SAT, OU=SAT, O=SAT, L=Beijing, ST=Beijing, C=CN"
+
+      - name: Create keystore.properties (for Release)
+        if: inputs.buildType == 'release'
+        run: |
+          cat > android/keystore.properties << 'EOF'
+          storeFile=../sat-release.jks
+          storePassword=android
+          keyAlias=sat
+          keyPassword=android
+          EOF
+
       - name: Build APK
         working-directory: android
         run: |
           chmod +x ./gradlew
-          if [ "${{ inputs.buildType || 'release' }}" = "release" ]; then
+          if [ "${{ inputs.buildType }}" = "release" ]; then
             ./gradlew assembleRelease
           else
             ./gradlew assembleDebug
           fi
 
-      - name: Find APK
+      - name: Set APK path
         id: apk
         run: |
-          if [ "${{ inputs.buildType || 'release' }}" = "release" ]; then
-            echo "path=android/app/build/outputs/apk/release/app-release-unsigned.apk" >> $GITHUB_OUTPUT
+          if [ "${{ inputs.buildType }}" = "release" ]; then
+            echo "path=android/app/build/outputs/apk/release/app-release.apk" >> $GITHUB_OUTPUT
+            echo "name=SAT-release.apk" >> $GITHUB_OUTPUT
           else
             echo "path=android/app/build/outputs/apk/debug/app-debug.apk" >> $GITHUB_OUTPUT
+            echo "name=SAT-debug.apk" >> $GITHUB_OUTPUT
           fi
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SAT-APK
+          name: SAT-APK-${{ inputs.buildType }}
           path: ${{ steps.apk.outputs.path }}
-          retention-days: 30
+          retention-days: 90
+
+      - name: Upload keystore artifact (Release only)
+        if: inputs.buildType == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SAT-keystore
+          path: sat-release.jks
+          retention-days: 90
