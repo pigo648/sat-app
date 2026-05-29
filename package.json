@@ -1,0 +1,18 @@
+{
+  "name": "sat-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/frontend",
+    "packages/backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "npm -w packages/frontend run dev",
+    "dev:backend": "npm -w packages/backend run dev",
+    "build": "npm -w packages/frontend run build && npm -w packages/backend run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
